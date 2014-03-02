@@ -1,4 +1,3 @@
-import re
 import json
 
 from django.template.response import TemplateResponse
@@ -6,6 +5,7 @@ from django.template.loader_tags import BlockNode, ExtendsNode
 
 from block_snippets.templatetags import SnippetsIncludeNode
 from block_snippets.utils import clean_html
+from block_snippets.templatetags.snippets import SnippetNode
 
 
 class BlockNotFound(Exception):
@@ -22,7 +22,7 @@ class SnippetsTemplateResponse(TemplateResponse):
 
     def _get_node(self, nodelist, context, block_name):
         for node in nodelist:
-            if isinstance(node, BlockNode) and node.name == block_name:
+            if isinstance(node, SnippetNode) and node.get_name(context) == block_name:
                 return node
             for key in ('nodelist', 'nodelist_true', 'nodelist_false'):
                 if hasattr(node, key):
@@ -90,7 +90,7 @@ class JsonSnippetsTemplateResponse(SnippetsTemplateResponse):
 
         snippets = {}
         for block_name in self.block_names:
-            snippets[block_name] = re.sub(r'[\t\n\r]', '', self.render_block(template, context, block_name))
+            snippets[block_name] = self.render_block(template, context, block_name) or ''
         snippets.update(self.extra_snippets)
 
         for key, val in snippets.items():
