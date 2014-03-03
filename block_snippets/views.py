@@ -9,8 +9,11 @@ class SnippetTemplateResponseMixin(object):
         return self.request.GET.getlist('snippet')
 
     def render_to_response(self, context, **response_kwargs):
-        return super(SnippetTemplateResponseMixin, self).render_to_response(context, block_names=self.get_snippet_names(),
-                                                                            **response_kwargs)
+        response_kwargs['snippet_names'] = response_kwargs.get('snippet_names', self.get_snippet_names())
+        return super(SnippetTemplateResponseMixin, self).render_to_response(context, **response_kwargs)
+
+    def has_snippet(self):
+        return self.get_snippet_names() and True or False
 
 
 class JsonSnippetTemplateResponseMixin(SnippetTemplateResponseMixin):

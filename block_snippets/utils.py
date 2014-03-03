@@ -1,5 +1,5 @@
-import re
+from django.utils.html import strip_spaces_between_tags
 
 
 def clean_html(html):
-    return re.sub(r'[\t\n\r]', '', html)
+    return strip_spaces_between_tags(html)

@@ -1,40 +1,43 @@
 from django.template.base import Node, TemplateSyntaxError
 from django import template
+from django.forms.util import flatatt
 
 register = template.Library()
 
 
 class SnippetNode(Node):
 
-    def __init__(self, name, method, nodelist):
+    def __init__(self, name, method, web_link, nodelist):
         self.nodelist = nodelist
         self.name = name
         self.method = method
+        self.web_link = web_link
 
     def get_name(self, context):
         return self.name.resolve(context)
 
     def render(self, context):
-        name = self.get_name(context)
-        method = self.method.resolve(context)
-        output = self.nodelist.render(context)
-        return '<div data-snippet="%s" data-snippet-type="%s">%s</div>' % (name, method, output)
+        attrs = {'data-snippet': self.get_name(context), 'data-snippet-type': self.method.resolve(context)}
+        if self.web_link:
+            attrs['data-web-link'] = self.web_link.resolve(context)
+
+        return '<div%s>%s</div>' % (flatatt(attrs), self.nodelist.render(context))
+
+    def __repr__(self):
+        return '<SnippetNode>'
 
 
 @register.tag('snippet')
 def do_snippet(parser, token):
     bits = token.contents.split()
-    if len(bits) != 3:
-        raise TemplateSyntaxError("'%s' tag takes two arguments" % bits[0])
-    snippet_name = bits[1]
-    snippet_method = bits[2]
+    if len(bits) != 3 and len(bits) != 4:
+        raise TemplateSyntaxError("'%s' tag takes two or three arguments" % bits[0])
+    snippet_name = parser.compile_filter(bits[1])
+    snippet_method = parser.compile_filter(bits[2])
+    snippet_web_link = None
+    if len(bits) == 4:
+        snippet_web_link = parser.compile_filter(bits[3])
 
-    try:
-        if snippet_name in parser.__loaded_snippets:
-            raise TemplateSyntaxError("'%s' tag with name '%s' appears more than once" % (bits[0], snippet_name))
-        parser.__loaded_snippets.append(snippet_name)
-    except AttributeError:  # parser.__loaded_blocks isn't a list yet
-        parser.__loaded_snippets = [snippet_name]
     nodelist = parser.parse(('endsnippet',))
     parser.delete_first_token()
-    return SnippetNode(parser.compile_filter(snippet_name), parser.compile_filter(snippet_method), nodelist)
+    return SnippetNode(snippet_name, snippet_method, snippet_web_link, nodelist)
