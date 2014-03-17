@@ -3,9 +3,7 @@ import json
 from django.template.response import TemplateResponse
 from django.template.loader_tags import BlockNode, ExtendsNode
 
-from block_snippets.templatetags import SnippetsIncludeNode
 from block_snippets.utils import clean_html
-from block_snippets.templatetags.snippets import SnippetNode
 
 
 class SnippetNotFound(Exception):
@@ -20,36 +18,9 @@ class SnippetsTemplateResponse(TemplateResponse):
                                                        current_app)
         self.snippet_names = snippet_names
 
-    def _get_node(self, nodelist, context, snippet_name):
-        for node in nodelist:
-            if isinstance(node, SnippetNode) and node.get_name(context) == snippet_name:
-                return node
-            for key in ('nodelist', 'nodelist_true', 'nodelist_false'):
-                if hasattr(node, key):
-                    try:
-                        return self._get_node(getattr(node, key), context, snippet_name)
-                    except:
-                        pass
-            if isinstance(node, SnippetsIncludeNode):
-                t = node.get_nodelist(context)
-                t._render(context)
-                subnode = self._get_node(t, context, snippet_name)
-                if subnode:
-                    return subnode
-
-        for node in nodelist:
-            if isinstance(node, ExtendsNode):
-                subnode = self._get_node(node.get_parent(context), context, snippet_name)
-                if subnode:
-                    return subnode
-
-        raise SnippetNotFound
-
     def render_snippet(self, template, context, snippet_name):
         try:
-            template._render(context)
-            snippet_template = self._get_node(template, context, snippet_name)
-            template = snippet_template
+            snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
             return snippet_template.render(context)
         except SnippetNotFound:
             return None
@@ -89,6 +60,7 @@ class JsonSnippetsTemplateResponse(SnippetsTemplateResponse):
         template._render(context)
 
         snippets = {}
+
         for snippet_name in self.snippet_names:
             snippets[snippet_name] = self.render_snippet(template, context, snippet_name) or ''
         snippets.update(self.extra_snippets)
@@ -103,3 +75,6 @@ class JsonSnippetsTemplateResponse(SnippetsTemplateResponse):
         output.update(self.extra_content)
 
         return json.dumps(output)
+
+
+

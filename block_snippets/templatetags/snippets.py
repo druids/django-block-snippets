@@ -17,6 +17,9 @@ class SnippetNode(Node):
         return self.name.resolve(context)
 
     def render(self, context):
+        snippets = context.render_context['snippets'] = context.render_context.get('snippets', {})
+        snippets[self.get_name(context)] = self
+
         attrs = {'data-snippet': self.get_name(context), 'data-snippet-type': self.method.resolve(context)}
         if self.web_link:
             attrs['data-web-link'] = self.web_link.resolve(context)
