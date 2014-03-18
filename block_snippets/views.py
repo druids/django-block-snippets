@@ -1,16 +1,20 @@
-from block_snippets.response import SnippetsTemplateResponse
+from block_snippets.response import SnippetsTemplateResponse, JsonSnippetsTemplateResponse
 
 
 class SnippetTemplateResponseMixin(object):
     response_class = SnippetsTemplateResponse
-    allowed_snippets = ()
+    allow_all_snippets = False
 
-    def get_snippet_name(self):
-        snippet = self.request.GET.get('snippet')
-        if snippet and snippet not in self.allowed_snippets:
-            snippet = None
-        return snippet
+    def get_snippet_names(self):
+        return self.request.GET.getlist('snippet')
 
     def render_to_response(self, context, **response_kwargs):
-        return super(SnippetTemplateResponseMixin, self).render_to_response(context, block_name=self.get_snippet_name(),
-                                                                            **response_kwargs)
+        response_kwargs['snippet_names'] = response_kwargs.get('snippet_names', self.get_snippet_names())
+        return super(SnippetTemplateResponseMixin, self).render_to_response(context, **response_kwargs)
+
+    def has_snippet(self):
+        return self.get_snippet_names() and True or False
+
+
+class JsonSnippetTemplateResponseMixin(SnippetTemplateResponseMixin):
+    response_class = JsonSnippetsTemplateResponse

@@ -1,4 +1,4 @@
 include README
 include LICENSE
 include MANIFEST.in
-recursive-include is_core *.py *.txt *.html *.po *.xml *.xslt *.xsl *.js
+recursive-include block_snippets *.py *.txt *.html *.po *.xml *.xslt *.xsl *.js
