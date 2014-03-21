@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.template.base import Node, TemplateSyntaxError
 from django import template
 from django.forms.util import flatatt
@@ -24,7 +26,6 @@ class SnippetNode(Node):
                  'class': class_name}
         if self.web_link:
             attrs['data-web-link'] = self.web_link.resolve(context)
-
         return '<div%s>%s</div>' % (flatatt(attrs), self.nodelist.render(context))
 
     def __repr__(self):

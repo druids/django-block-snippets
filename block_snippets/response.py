@@ -1,7 +1,8 @@
+from _future_ import unicode_literals
+
 import json
 
 from django.template.response import TemplateResponse
-from django.template.loader_tags import BlockNode, ExtendsNode
 
 from block_snippets.utils import clean_html
 
@@ -75,6 +76,3 @@ class JsonSnippetsTemplateResponse(SnippetsTemplateResponse):
         output.update(self.extra_content)
 
         return json.dumps(output)
-
-
-
