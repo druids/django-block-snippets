@@ -1,4 +1,4 @@
-from _future_ import unicode_literals
+from __future__ import unicode_literals
 
 from block_snippets.response import SnippetsTemplateResponse, JsonSnippetsTemplateResponse
 

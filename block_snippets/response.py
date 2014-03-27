@@ -1,4 +1,4 @@
-from _future_ import unicode_literals
+from __future__ import unicode_literals
 
 import json
 
@@ -43,12 +43,13 @@ class JsonSnippetsTemplateResponse(SnippetsTemplateResponse):
     def __init__(self, request, template, context=None, content_type=None,
             status=None, mimetype=None, current_app=None, snippet_names=None,
             extra_snippets={}, extra_content={}, force_snippets=False):
-        content_type = content_type or (snippet_names or force_snippets) and 'application/json' or None
+        content_type = content_type or (snippet_names or force_snippets) and 'text/plain' or None
         super(JsonSnippetsTemplateResponse, self).__init__(request, template, context, content_type, status, mimetype,
                                                            current_app, snippet_names)
         self.extra_snippets = extra_snippets
         self.extra_content = extra_content
         self.force_snippets = force_snippets
+        self['Cache-Control'] = 'no-cache'
 
     @property
     def rendered_content(self):
