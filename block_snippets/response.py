@@ -40,7 +40,9 @@ class JsonSnippetsTemplateResponse(SnippetsTemplateResponse):
 
     def __init__(self, request, template, context=None, content_type=None,
             status=None, mimetype=None, current_app=None, snippet_names=None,
-            extra_snippets={}, extra_content={}, force_snippets=False):
+            extra_snippets=None, extra_content=None, force_snippets=False):
+        extra_snippets = extra_snippets or {}
+        extra_content = extra_content or {}
         content_type = content_type or (snippet_names or force_snippets) and 'application/json' or None
         super(JsonSnippetsTemplateResponse, self).__init__(request, template, context, content_type, status, mimetype,
                                                            current_app, snippet_names)
