@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import json
 
 from django.template.response import TemplateResponse
@@ -43,12 +45,13 @@ class JsonSnippetsTemplateResponse(SnippetsTemplateResponse):
             extra_snippets=None, extra_content=None, force_snippets=False):
         extra_snippets = extra_snippets or {}
         extra_content = extra_content or {}
-        content_type = content_type or (snippet_names or force_snippets) and 'application/json' or None
+        content_type = content_type or (snippet_names or force_snippets) and 'text/plain' or None
         super(JsonSnippetsTemplateResponse, self).__init__(request, template, context, content_type, status, mimetype,
                                                            current_app, snippet_names)
         self.extra_snippets = extra_snippets
         self.extra_content = extra_content
         self.force_snippets = force_snippets
+        self['Cache-Control'] = 'no-cache'
 
     @property
     def rendered_content(self):

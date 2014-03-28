@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.template.loader_tags import IncludeNode
 from django.template.loader import get_template
 
