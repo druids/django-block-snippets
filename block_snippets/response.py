@@ -22,7 +22,7 @@ class SnippetsTemplateResponse(TemplateResponse):
     def render_snippet(self, template, context, snippet_name):
         try:
             snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
-            return snippet_template.render(context)
+            return snippet_template.render_content(context)
         except SnippetNotFound:
             return None
 

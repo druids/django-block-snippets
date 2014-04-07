@@ -18,6 +18,9 @@ class SnippetNode(Node):
     def get_name(self, context):
         return self.name.resolve(context)
 
+    def render_content(self, context):
+        return self.nodelist.render(context)
+
     def render(self, context):
         snippets = context.render_context['snippets'] = context.render_context.get('snippets', {})
         snippets[self.get_name(context)] = self
@@ -26,7 +29,7 @@ class SnippetNode(Node):
                  'class': class_name}
         if self.web_link:
             attrs['data-web-link'] = self.web_link.resolve(context)
-        return '<div%s>%s</div>' % (flatatt(attrs), self.nodelist.render(context))
+        return '<div%s>%s</div>' % (flatatt(attrs), self.render_content(context))
 
     def __repr__(self):
         return '<SnippetNode>'
@@ -46,3 +49,17 @@ def do_snippet(parser, token):
     nodelist = parser.parse(('endsnippet',))
     parser.delete_first_token()
     return SnippetNode(snippet_name, snippet_method, snippet_web_link, nodelist)
+
+
+@register.simple_tag
+def snippet_loader(loader, type='replace', web_link=None, onload=None):
+    attrs = {
+             'data-snippet-loader': loader,
+             'data-snippet-type': type
+             }
+    if web_link:
+        attrs['data-web-link'] = web_link
+    if onload:
+        attrs['data-snippet-onload'] = onload
+
+    return '<div class="snippet snippet-content"%s></div>' % flatatt(attrs)
