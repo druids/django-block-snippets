@@ -7,10 +7,6 @@ from django.template.response import TemplateResponse
 from block_snippets.utils import clean_html
 
 
-class SnippetNotFound(Exception):
-    pass
-
-
 class SnippetsTemplateResponse(TemplateResponse):
 
     def __init__(self, request, template, context=None, content_type=None,
@@ -20,11 +16,10 @@ class SnippetsTemplateResponse(TemplateResponse):
         self.snippet_names = snippet_names
 
     def render_snippet(self, template, context, snippet_name):
-        try:
-            snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
-            return snippet_template.render_content(context)
-        except SnippetNotFound:
+        snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
+        if snippet_template is None:
             return None
+        return snippet_template.render_content(context)
 
     @property
     def rendered_content(self):
