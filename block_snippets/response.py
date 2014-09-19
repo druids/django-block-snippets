@@ -19,7 +19,7 @@ class SnippetsTemplateResponse(TemplateResponse):
         snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
         if snippet_template is None:
             return None
-        return snippet_template.render_content(context)
+        return snippet_template._rendered_context
 
     @property
     def rendered_content(self):
