@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.template.base import Node, TemplateSyntaxError
 from django import template
-from django.forms.util import flatatt
+from django.forms.utils import flatatt
 
 register = template.Library()
 
