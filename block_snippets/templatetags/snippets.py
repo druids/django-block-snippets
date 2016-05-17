@@ -2,7 +2,12 @@ from __future__ import unicode_literals
 
 from django.template.base import Node, TemplateSyntaxError
 from django import template
-from django.forms.utils import flatatt
+
+try:
+    from django.forms.utils import flatatt
+except ImportError:
+    from django.forms.util import flatatt
+
 
 register = template.Library()
 
@@ -23,13 +28,17 @@ class SnippetNode(Node):
 
     def render(self, context):
         snippets = context.render_context['snippets'] = context.render_context.get('snippets', {})
-        snippets[self.get_name(context)] = self
-        class_name = 'snippet snippet-' + self.get_name(context).split('-')[-1]
+        name = self.get_name(context)
+        snippets[name] = self
+        class_name = 'snippet snippet-' + name.split('-')[-1]
         attrs = {'data-snippet': self.get_name(context), 'data-snippet-type': self.method.resolve(context),
                  'class': class_name}
         if self.web_link:
             attrs['data-web-link'] = self.web_link.resolve(context)
-        return '<div%s>%s</div>' % (flatatt(attrs), self.render_content(context))
+
+        # Context should be rendered only one times
+        self._rendered_context = self.render_content(context)
+        return '<div%s>%s</div>' % (flatatt(attrs), self._rendered_context)
 
     def __repr__(self):
         return '<SnippetNode>'
@@ -65,9 +74,9 @@ class SnippetLoaderNode(Node):
 
     def render(self, context):
         attrs = {
-                 'data-snippet-loader': self.loader.resolve(context),
-                 'data-snippet-type': self.type.resolve(context),
-                 }
+            'data-snippet-loader': self.loader.resolve(context),
+            'data-snippet-type': self.type.resolve(context),
+        }
         if self.web_link:
             attrs['data-web-link'] = self.web_link.resolve(context)
         if self.onload:
@@ -75,6 +84,7 @@ class SnippetLoaderNode(Node):
         if self.web_link:
             attrs['data-web-link'] = self.web_link.resolve(context)
         return '<div class="snippet snippet-content"%s>%s</div>' % (flatatt(attrs), self.render_content(context))
+
 
 @register.tag('snippet_loader')
 def do_snippet_loader(parser, token):

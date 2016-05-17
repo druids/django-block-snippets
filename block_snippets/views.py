@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from block_snippets.response import SnippetsTemplateResponse, JsonSnippetsTemplateResponse
+from block_snippets.response import SnippetsTemplateResponse, JSONSnippetsTemplateResponse
 
 
 class SnippetTemplateResponseMixin(object):
@@ -15,8 +15,8 @@ class SnippetTemplateResponseMixin(object):
         return super(SnippetTemplateResponseMixin, self).render_to_response(context, **response_kwargs)
 
     def has_snippet(self):
-        return self.get_snippet_names() and True or False
+        return bool(self.get_snippet_names())
 
 
-class JsonSnippetTemplateResponseMixin(SnippetTemplateResponseMixin):
-    response_class = JsonSnippetsTemplateResponse
+class JSONSnippetTemplateResponseMixin(SnippetTemplateResponseMixin):
+    response_class = JSONSnippetsTemplateResponse
