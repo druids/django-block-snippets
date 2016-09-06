@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import json
 
+from distutils.version import StrictVersion
+
 import django
 from django.template.response import TemplateResponse
 
@@ -16,18 +18,23 @@ class SnippetsTemplateResponse(TemplateResponse):
 
     def render_snippet(self, template, context, snippet_name):
         snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
-        if django.get_version() >= '1.8':
+        if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
             return snippet_template._rendered_context if snippet_template is not None else ''
         else:
             return snippet_template.render_content(context) if snippet_template is not None else ''
 
     @property
     def rendered_content(self):
-        if django.get_version() >= '1.8':
-            from django.template.context import make_context
-
+        if (StrictVersion(django.get_version()) < StrictVersion('1.8') or
+                StrictVersion(django.get_version()) >= StrictVersion('1.10')):
+            template = self.resolve_template(self.template_name)
+            context = self.resolve_context(self.context_data)
+        else:
             template = self._resolve_template(self.template_name)
             context = self._resolve_context(self.context_data)
+
+        if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
+            from django.template.context import make_context
 
             if not self.snippet_names:
                 return template.render(context, self._request)
@@ -39,9 +46,6 @@ class SnippetsTemplateResponse(TemplateResponse):
 
             return template.render(context, self._request)
         else:
-            template = self.resolve_template(self.template_name)
-            context = self.resolve_context(self.context_data)
-
             if not self.snippet_names:
                 return template.render(context)
 
@@ -68,11 +72,18 @@ class JSONSnippetsTemplateResponse(SnippetsTemplateResponse):
 
     @property
     def rendered_content(self):
-        if django.get_version() >= '1.8':
-            from django.template.context import make_context
+        if (StrictVersion(django.get_version()) < StrictVersion('1.8') or
+                    StrictVersion(django.get_version()) >= StrictVersion('1.10')):
+            template = self.resolve_template(self.template_name)
+            context = self.resolve_context(self.context_data)
 
+        else:
             template = self._resolve_template(self.template_name)
             context = self._resolve_context(self.context_data)
+
+        if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
+            from django.template.context import make_context
+
             if not self.snippet_names and not self.force_snippets:
                 return template.render(context, self._request)
             context = make_context(context, self._request)
@@ -83,8 +94,6 @@ class JSONSnippetsTemplateResponse(SnippetsTemplateResponse):
                     snippets[snippet_name] = self.render_snippet(template, context, snippet_name) or ''
 
         else:
-            template = self.resolve_template(self.template_name)
-            context = self.resolve_context(self.context_data)
             if not self.snippet_names and not self.force_snippets:
                 return template.render(context)
             template._render(context)

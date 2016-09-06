@@ -1,4 +1,4 @@
 django==1.8
-https://github.com/LukasRychtecky/germanium/tarball/1.0.8#egg=germanium-1.0.8
+https://github.com/LukasRychtecky/germanium/tarball/1.0.14#egg=germanium-1.0.14
 coverage==4.0.2
 six==1.10.0
