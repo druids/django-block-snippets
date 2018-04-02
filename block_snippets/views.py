@@ -1,9 +1,7 @@
-from __future__ import unicode_literals
-
 from block_snippets.response import SnippetsTemplateResponse, JSONSnippetsTemplateResponse
 
 
-class SnippetTemplateResponseMixin(object):
+class SnippetTemplateResponseMixin:
     response_class = SnippetsTemplateResponse
     allow_all_snippets = False
 

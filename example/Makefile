@@ -9,7 +9,6 @@ DJANGO_DIR = dj
 VIRTUAL_ENV = var/ve
 LOCALPATH = $(CURDIR)
 PYTHONPATH = $(LOCALPATH)/$(DJANGO_DIR)
-DJANGO_TEST_PORTS = 9000-10000
 SETTINGS = settings
 DJANGO_SETTINGS_MODULE = $(DJANGO_DIR).settings.$(SETTINGS)
 DJANGO_POSTFIX = --settings=$(DJANGO_SETTINGS_MODULE) --pythonpath=$(PYTHONPATH)
@@ -51,7 +50,7 @@ reinstallvirtualenv: cleanvirtualenv bootstrap initvirtualenv initenv
 
 test: clean
 	$(PYTHON_BIN)/coverage run --omit */site-packages/*,*/migrations/*,*/lib/* $(LOCALPATH)/manage.py test\
-	 $(test_modules)  --liveserver=localhost:$(DJANGO_TEST_PORTS) $(DJANGO_POSTFIX) -v 2
+	 $(test_modules) $(DJANGO_POSTFIX) -v 2
 
 htmlcoverage: test
 	$(PYTHON_BIN)/coverage html -d $(LOCALPATH)/var/reports/htmlcov --omit */site-packages/*,*/migrations/*,*/lib/*
