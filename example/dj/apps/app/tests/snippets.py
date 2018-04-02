@@ -3,7 +3,7 @@ import json
 from django.utils.encoding import force_text
 
 from germanium.tools import assert_equal
-from germanium.rest import ClientTestCase
+from germanium.test_cases.client import ClientTestCase
 from germanium.anotations import data_provider
 
 

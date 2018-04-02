@@ -1,29 +1,37 @@
-from __future__ import unicode_literals
-
 import json
 
 from block_snippets.utils import clean_html
 
-from .compatibility import CompatibleTemplateResponse
+from django.template.response import TemplateResponse
 
 
-class SnippetsTemplateResponse(CompatibleTemplateResponse):
+class SnippetsTemplateResponse(TemplateResponse):
 
     def __init__(self, *args, **kwargs):
         self.snippet_names = kwargs.pop('snippet_names', None)
         super(SnippetsTemplateResponse, self).__init__(*args, **kwargs)
 
-    def render_snippet(self, template, context, snippet_name):
-        return self.compatible_render_context(context.render_context.get('snippets', {}).get(snippet_name), context)
+    def render_snippet(self, context, snippet_name):
+        snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
+        return snippet_template._rendered_context if snippet_template is not None else ''
 
     @property
     def rendered_content(self):
-        template = self.compatible_resolve_template()
-        context = self.compatible_resolve_context()
+        template = self.resolve_template(self.template_name)
+        context = self.resolve_context(self.context_data)
         if not self.snippet_names:
-            return self.compatible_render_template(template, context)
+            return template.render(context, self._request)
         else:
-            return self.compatible_call_render(self.render_snippet, template, context, self.snippet_names[0])
+            return self.call_render(self.render_snippet, template, context, self.snippet_names[0])
+
+    def call_render(self, func, template, context, *args, **kwargs):
+        from django.template.context import make_context
+
+        context = make_context(context, self._request)
+        with context.bind_template(template.template):
+            template.template._render(context)
+            return func(context, *args, **kwargs)
+
 
 class JSONSnippetsTemplateResponse(SnippetsTemplateResponse):
 
@@ -42,18 +50,18 @@ class JSONSnippetsTemplateResponse(SnippetsTemplateResponse):
         self.force_snippets = force_snippets
         self['Cache-Control'] = 'no-cache'
 
-    def render_snippets(self, template, context):
-        return {snippet_name: self.render_snippet(template, context, snippet_name) or ''
+    def render_snippets(self, context):
+        return {snippet_name: self.render_snippet(context, snippet_name) or ''
                 for snippet_name in self.snippet_names}
 
     @property
     def rendered_content(self):
-        template = self.compatible_resolve_template()
-        context = self.compatible_resolve_context()
+        template = self.resolve_template(self.template_name)
+        context = self.resolve_context(self.context_data)
         if not self.snippet_names and not self.force_snippets:
-            return self.compatible_render_template(template, context)
+            return template.render(context, self._request)
         else:
-            snippets = self.compatible_call_render(self.render_snippets, template, context)
+            snippets = self.call_render(self.render_snippets, template, context)
             snippets.update(self.extra_snippets)
             snippets = {key: clean_html(val) for key, val in snippets.items()}
             output = {'snippets': snippets}
