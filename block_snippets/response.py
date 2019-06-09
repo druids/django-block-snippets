@@ -2,7 +2,10 @@ import json
 
 from block_snippets.utils import clean_html
 
+from django.utils.translation import ugettext
 from django.template.response import TemplateResponse
+from django.core.exceptions import SuspiciousOperation
+from django.utils.html import escape
 
 
 class SnippetsTemplateResponse(TemplateResponse):
@@ -13,16 +16,19 @@ class SnippetsTemplateResponse(TemplateResponse):
 
     def render_snippet(self, context, snippet_name):
         snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
-        return snippet_template._rendered_context if snippet_template is not None else ''
+        if snippet_template is None:
+            raise SuspiciousOperation(ugettext('Invalid snippet name "{}"').format(escape(snippet_name)))
+
+        return snippet_template._rendered_context if snippet_template is not None else None
 
     @property
     def rendered_content(self):
         template = self.resolve_template(self.template_name)
         context = self.resolve_context(self.context_data)
-        if not self.snippet_names:
-            return template.render(context, self._request)
-        else:
+        if self.snippet_names:
             return self.call_render(self.render_snippet, template, context, self.snippet_names[0])
+        else:
+            return template.render(context, self._request)
 
     def call_render(self, func, template, context, *args, **kwargs):
         from django.template.context import make_context
@@ -42,7 +48,8 @@ class JSONSnippetsTemplateResponse(SnippetsTemplateResponse):
         snippet_names = kwargs.get('snippet_names', None)
         force_snippets = kwargs.pop('force_snippets', None)
         kwargs['content_type'] = (
-            content_type if content_type is not None or (not snippet_names and not force_snippets) else 'text/plain'
+            content_type if content_type is not None or (not snippet_names and not force_snippets)
+            else 'text/plain'
         )
         super(JSONSnippetsTemplateResponse, self).__init__(*args, **kwargs)
         self.extra_snippets = extra_snippets
@@ -51,8 +58,10 @@ class JSONSnippetsTemplateResponse(SnippetsTemplateResponse):
         self['Cache-Control'] = 'no-cache'
 
     def render_snippets(self, context):
-        return {snippet_name: self.render_snippet(context, snippet_name) or ''
-                for snippet_name in self.snippet_names}
+        return {
+            snippet_name: self.render_snippet(context, snippet_name)
+            for snippet_name in self.snippet_names
+        }
 
     @property
     def rendered_content(self):
