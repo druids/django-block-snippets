@@ -2,6 +2,7 @@ from block_snippets.response import SnippetsTemplateResponse, JSONSnippetsTempla
 
 
 class SnippetTemplateResponseMixin:
+
     response_class = SnippetsTemplateResponse
     allow_all_snippets = False
 
@@ -17,4 +18,5 @@ class SnippetTemplateResponseMixin:
 
 
 class JSONSnippetTemplateResponseMixin(SnippetTemplateResponseMixin):
+
     response_class = JSONSnippetsTemplateResponse
