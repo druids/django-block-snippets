@@ -4,7 +4,7 @@ from block_snippets.utils import clean_html
 
 from django.utils.translation import ugettext
 from django.template.response import TemplateResponse
-from django.core.exceptions import SuspiciousOperation
+from django.http.response import Http404
 from django.utils.html import escape
 
 
@@ -17,7 +17,7 @@ class SnippetsTemplateResponse(TemplateResponse):
     def render_snippet(self, context, snippet_name):
         snippet_template = context.render_context.get('snippets', {}).get(snippet_name)
         if snippet_template is None:
-            raise SuspiciousOperation(ugettext('Invalid snippet name "{}"').format(escape(snippet_name)))
+            raise Http404(ugettext('Invalid snippet name "{}"').format(escape(snippet_name)))
 
         return snippet_template._rendered_context if snippet_template is not None else None
 
